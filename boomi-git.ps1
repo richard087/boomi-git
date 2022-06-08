@@ -21,10 +21,10 @@ function Format-MetadataAtomsphereHeaders {
     return $headers
 }
 
-function Get-AtomSphereMetadata {
+function Get-AtomSphereMetadata([String]$sinceDate = '1921-01-04T11:52:28Z'){
     $baseURL = "https://api.boomi.com/api/rest/v1/$accountId"
     $URL     = "$baseURL/ComponentMetadata/query"
-    $filter = Format-AtomsphereAllMetaData
+    $filter = Format-AtomsphereAllMetaData($sinceDate)
     $call = 0
     do {
         
@@ -48,8 +48,8 @@ function Get-AtomSphereMetadata {
     } while ($partial.queryToken.length -gt 0)
 }
 
-function Format-AtomsphereAllMetaData {
-    return '{"QueryFilter" : {"expression" : {"operator" : "and", "nestedExpression" : [{"argument" : ["mdm.domain"],"operator":"NOT_EQUALS","property":"Type"}, {"argument" : ["1921-01-04T11:52:28Z"],"operator":"GREATER_THAN","property":"modifiedDate"}]}}}'
+function Format-AtomsphereAllMetaData([String]$sinceDate) {
+    return '{"QueryFilter" : {"expression" : {"operator" : "and", "nestedExpression" : [{"argument" : ["mdm.domain"],"operator":"NOT_EQUALS","property":"Type"}, {"argument" : ["'+ $sinceDate +'"],"operator":"GREATER_THAN_OR_EQUAL","property":"modifiedDate"}]}}}'
 }
 
 function Format-AtomsphereGetComponents {
@@ -201,10 +201,22 @@ function New-TempDir([string]$DirectorySuggestedName='boomi-git') {
     return $temp_dir
 }
 
+
 $clock = [system.diagnostics.stopwatch]::StartNew()
 New-Directories
 $clock.Elapsed.TotalMinutes
-Get-AtomSphereMetadata
+$gitdir = Join-Path -Path $repo_path -ChildPath '.git'
+if (Test-Path $gitdir) {
+    Write-Output "Found existing git repository"
+    $git_author_datetime = & $git_executable -C $repo_path log -1 --format='format:%aI'
+    $delta_datetime = Get-Date -Date $git_author_datetime
+    $delta_datetime_utc = $delta_datetime.ToUniversalTime()
+    $delta_datetime_iso = get-date -Date $delta_datetime_utc -Format "yyyy-MM-dd'T'HH:mm:ss'Z'"
+    Get-AtomSphereMetadata -sinceDate $delta_datetime_iso
+}
+else {
+    Get-AtomSphereMetadata
+}
 $clock.Elapsed.TotalMinutes
 Get-AllComponents
 $clock.Elapsed.TotalMinutes
