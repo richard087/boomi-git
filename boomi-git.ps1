@@ -176,9 +176,6 @@ function New-Directories {
     $script:staging_directory   = Join-Path -Path $temp_path -ChildPath 'components'
     New-Item -Path $component_directory -ItemType Directory -Force >$null
     New-Item -Path $staging_directory -ItemType Directory -Force >$null
-    if (-not (Test-Path -Path (Join-Path -Path $repo_path -ChildPath '.git'))) {
-        & $git_executable init $repo_path
-    } 
 }
 
 function New-TempDir([string]$DirectorySuggestedName='boomi-git') {
@@ -215,6 +212,7 @@ if (Test-Path $gitdir) {
     Get-AtomSphereMetadata -sinceDate $delta_datetime_iso
 }
 else {
+    & $git_executable init $repo_path
     Get-AtomSphereMetadata
 }
 $clock.Elapsed.TotalMinutes
