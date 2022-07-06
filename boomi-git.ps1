@@ -11,10 +11,12 @@ param (
 if ($ApiPassword -eq $null) {
     if ($ApiPasswordInsecure -ne $null) {
         $ApiPassword = ConvertTo-SecureString -String $ApiPasswordInsecure -AsPlainText -Force
-        $script:creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApiUser, $ApiPassword
-    } else {
-        $script:creds = Get-Credential -UserName $ApiUser -Message "Enter your Boomi API key as the password"
     }
+}
+if ($ApiPassword -ne $null) {
+    $script:creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApiUser, $ApiPassword
+} else {
+    $script:creds = Get-Credential -UserName $ApiUser -Message "Enter your Boomi API key as the password"
 }
 
 [string]$script:filename_format = '^(?<modifiedBy>.+)-(?<componentId>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})~(?<version>\d+)\.xml$';
