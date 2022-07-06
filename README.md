@@ -1,5 +1,5 @@
 # boomi-git
-Populate git from AtomSphere API
+Populate git from AtomSphere API. If run with a path to a non-existent git repository, it will create a new git repository at that path and commit all components to that repository. If provided with the path to an existing git repository it will commit all subsequent changes correctly.
 
 ## Instructions
 1. Have a access to an AtomSphere account. https://train.boomi.com is a great place to start.
