@@ -2,17 +2,27 @@
 param (
     [string]$accountId = 'company-ABC1DE',
     [string]$ApiUser = 'BOOMI_TOKEN.someuser@somedomain.com',
+    [SecureString]$ApiPassword = $null,
+    [Parameter(ValueFromPipeline = $true)][string]$ApiPasswordInsecure = $null,
     [string]$repo_path  = 'C:\atomsphere-repo',
     [string]$git_executable='C:\Program Files\Git\mingw64\libexec\git-core\git.exe'
 )
 
-$script:creds = Get-Credential $ApiUser
+if ($ApiPassword -eq $null) {
+    if ($ApiPasswordInsecure -ne $null) {
+        $ApiPassword = ConvertTo-SecureString -String $ApiPasswordInsecure -AsPlainText -Force
+        $script:creds = New-Object -TypeName System.Management.Automation.PSCredential -ArgumentList $ApiUser, $ApiPassword
+    } else {
+        $script:creds = Get-Credential -UserName $ApiUser -Message "Enter your Boomi API key as the password"
+    }
+}
+
 [string]$script:filename_format = '^(?<modifiedBy>.+)-(?<componentId>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})~(?<version>\d+)\.xml$';
 
 function Format-AtomsphereHeaders {
     return @{
         'Content-Type' = 'application/json'
-      }
+    }
 }
 
 function Format-MetadataAtomsphereHeaders {
